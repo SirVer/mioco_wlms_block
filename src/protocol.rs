@@ -129,7 +129,13 @@ impl PacketCutter {
             return Ok(Some(packet_data));
         }
         println!("#sirver ALIVE {}:{}", file!(), line!());
-        let size = try!(reader.read(&mut self.buf[self.unconsumed..]));
+        let size = match reader.read(&mut self.buf[self.unconsumed..]) {
+            Ok(size) => size,
+            Err(e) => {
+                println!("#sirver e: {:#?}", e);
+                return Err(e.into());
+            },
+        };
         println!("#sirver ALIVE {}:{}", file!(), line!());
         self.unconsumed += size;
 
