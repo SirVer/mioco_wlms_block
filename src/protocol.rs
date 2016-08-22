@@ -89,7 +89,7 @@ impl PacketParser {
         }
     }
 
-    pub fn read_packet<T: Read>(&mut self, reader: &mut T) -> Result<Option<Packet>> {
+    pub fn read_packet<T: TryRead>(&mut self, reader: &mut T) -> Result<Option<Packet>> {
         match try!(self.packet_cutter.read_packet(reader)) {
             None => Ok(None), 
             Some(packet_data) => match packet(&packet_data) {
@@ -120,7 +120,7 @@ impl PacketCutter {
         }
     }
 
-    fn read_packet<T: Read>(&mut self, reader: &mut T) -> Result<Option<Vec<u8>>> {
+    fn read_packet<T: TryRead>(&mut self, reader: &mut T) -> Result<Option<Vec<u8>>> {
         println!("#sirver ALIVE {}:{}", file!(), line!());
         println!("#sirver self.buf[..self.unconsumed]: {:#?}", self.buf[..self.unconsumed].iter().collect::<Vec<&u8>>());
         self.buf.resize(MAX_PACKET_SIZE, 0u8);
@@ -129,15 +129,20 @@ impl PacketCutter {
             return Ok(Some(packet_data));
         }
         println!("#sirver ALIVE {}:{}", file!(), line!());
-        let size = match reader.read(&mut self.buf[self.unconsumed..]) {
-            Ok(size) => size,
+        let size = match reader.try_read(&mut self.buf[self.unconsumed..]) {
+            Ok(None) => {
+                println!("#sirver Read nothing.");
+            },
+            Ok(Some(size)) => {
+                println!("#sirver Read: size: {:#?}", size);
+                self.unconsumed += size;
+            },
             Err(e) => {
                 println!("#sirver e: {:#?}", e);
                 return Err(e.into());
             },
         };
         println!("#sirver ALIVE {}:{}", file!(), line!());
-        self.unconsumed += size;
 
         println!("#sirver self.buf[..self.unconsumed]: {:#?}", self.buf[..self.unconsumed].iter().collect::<Vec<&u8>>());
         println!("#sirver ALIVE {}:{}", file!(), line!());
