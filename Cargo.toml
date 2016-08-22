@@ -1,0 +1,13 @@
+[package]
+name = "wlms"
+version = "0.1.0"
+authors = ["Holger Rapp <HolgerRapp@gmx.net>"]
+
+[dependencies]
+mioco = { git = "https://github.com/dpc/mioco" }
+env_logger = "0.3.4"
+nom = "1.2.4"
+byteorder = "0.5.3"
+error-chain = "0.5.0"
+mio = "*"  # Use the same as mioco.
+bytes = "*" # Use the same as mioco.
